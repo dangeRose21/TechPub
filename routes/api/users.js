@@ -1,6 +1,7 @@
 const express = require('express');
 const gravatar = require('gravatar');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 
 const { check, validationResult } = require('express-validator/check');
 
@@ -37,12 +38,29 @@ async (req, res) => {
             res.status(400).json({ errors : [{ msg: 'User already exists' }] });
         }
         
- 
-        // Get users gravatar
+        const avatar = gravatar.url(email, {
+            s: '200',
+            r: 'pg',
+            d: 'mm'
+        })
 
+        user  = new User({
+            name, 
+            email, 
+            avatar,
+            password
+        });
 
         // Encrypt password 
-        res.send('User route');
+        const salt = await bcrypt.genSalt(10); 
+
+        user.password = await bcrypt.hash(password, salt);
+
+        await user.save();
+
+        //Return jsonwebtoken
+
+        res.send('User registered');
     
     } catch(err) {
         console.error(err.message);
